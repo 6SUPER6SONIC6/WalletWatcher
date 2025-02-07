@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kapt)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -56,4 +60,37 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    //Lifecycle
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.androidx.lifecycle.viewModelCompose)
+
+    //Hilt
+    implementation(libs.hilt.android.core)
+    implementation(libs.androidx.hilt.navigation.compose)
+    kapt(libs.hilt.compiler)
+
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    //Ktor
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.content.negotiation)
+    implementation(libs.ktor.serialization.json)
+
+    //Coroutines
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    //Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
+
 }

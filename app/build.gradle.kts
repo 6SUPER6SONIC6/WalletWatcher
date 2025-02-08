@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,6 +14,10 @@ android {
     namespace = "com.supersonic.walletwatcher"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.supersonic.walletwatcher"
         minSdk = 26
@@ -20,6 +26,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("String", "MORALIS_API_KEY", properties.getProperty("MORALIS_API_KEY"))
     }
 
     buildTypes {
@@ -41,6 +51,10 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+kapt{
+    correctErrorTypes = true
 }
 
 dependencies {

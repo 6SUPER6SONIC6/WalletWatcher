@@ -18,7 +18,7 @@ import javax.inject.Singleton
 object KtorModule {
 
     private const val API_KEY = BuildConfig.MORALIS_API_KEY
-    private const val BASE_URL = "https://deep-index.moralis.io/api/v2.2"
+    private const val BASE_URL = "https://deep-index.moralis.io/api/v2.2/"
 
 
     @Provides
@@ -32,6 +32,8 @@ object KtorModule {
             }
             install(DefaultRequest){
                 url(BASE_URL)
+                headers.append("Accept", "application/json")
+                headers.append("ContentType", "text/html; charset=utf-8")
                 headers.append("X-API-Key", API_KEY)
             }
         }

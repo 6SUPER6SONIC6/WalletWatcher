@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.supersonic.walletwatcher.R
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
@@ -108,42 +111,54 @@ private fun WalletAddressInput(
     onClearTextClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = text,
-            onValueChange = onTextChange,
-            placeholder = {
-                Text("Enter wallet address")
-            },
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(8.dp),
-            singleLine = true,
-            trailingIcon = {
-                AnimatedVisibility(
-                    visible = text.isNotEmpty(),
-                    enter = scaleIn(),
-                    exit = scaleOut()
-                ) {
-                    IconButton(
-                        onClick = onClearTextClick
+    Column {
+        Text(
+            text = "Enter wallet address",
+            style = typography.labelLarge
+        )
+        Spacer(Modifier.height(2.dp))
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = onTextChange,
+                placeholder = {
+                    Text(
+                        text = "0x112532B200980Ddee8226023bEbBE2E6884C31e2",
+//                        color = colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                        )
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                singleLine = true,
+                trailingIcon = {
+                    AnimatedVisibility(
+                        visible = text.isNotEmpty(),
+                        enter = scaleIn(),
+                        exit = scaleOut()
                     ) {
-                        Icon(imageVector = Icons.Default.Clear, contentDescription = null)
+                        IconButton(
+                            onClick = onClearTextClick
+                        ) {
+                            Icon(imageVector = Icons.Default.Clear, contentDescription = null)
+                        }
                     }
                 }
+            )
+
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = onSearchClick,
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
-        )
-        Spacer(Modifier.width(8.dp))
-        Button(
-            onClick = onSearchClick,
-            modifier = Modifier.size(56.dp),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Icon(imageVector = Icons.Default.Search, contentDescription = null)
         }
     }
 

@@ -1,5 +1,8 @@
 package com.supersonic.walletwatcher.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,7 +28,31 @@ fun RootAppNavigation(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> fullWidth }, // Starts off-screen to the right
+                animationSpec = tween(durationMillis = 500)
+            )
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> -fullWidth }, // Moves off-screen to the left
+                animationSpec = tween(durationMillis = 500)
+            )
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { fullWidth -> -fullWidth }, // Reverse direction for back navigation
+                animationSpec = tween(durationMillis = 500)
+            )
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { fullWidth -> fullWidth }, // Reverse exit direction
+                animationSpec = tween(durationMillis = 500)
+            )
+        }
     ){
         composable<MainScreen> {
 
@@ -53,10 +80,11 @@ fun RootAppNavigation(
                     Json.decodeFromString(TokenBalance.serializer(), tokenBalance)
                 }
             }
-
+            val viewModel = hiltViewModel<WalletViewModel>()
+            viewModel.loadTokensList(tokenBalances)
             WalletScreen(
-                viewModel = hiltViewModel<WalletViewModel>(),
-                tokensList = tokenBalances,
+                viewModel = viewModel,
+//                tokensList = tokenBalances,
                 walletAddress = args.walletAddress,
                 onNavigateBack = {
                     navController.navigateUp()

@@ -1,5 +1,6 @@
 package com.supersonic.walletwatcher.ui.screens.wallet
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,18 +43,22 @@ import com.supersonic.walletwatcher.utils.formatToCurrency
 @Composable
 fun WalletScreen(
     viewModel: WalletViewModel,
-    tokensList: List<TokenBalance>,
+//    tokensList: List<TokenBalance>,
     walletAddress: String,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     ) {
+
+    val tokensList by viewModel.tokensList.collectAsState()
+
+    BackHandler(onBack = onNavigateBack)
 
     Scaffold(
         topBar = {
             WalletTopBar(
                 title = walletAddress,
                 onCloseClick = onNavigateBack,
-                onRefreshClick = { TODO() },
+                onRefreshClick = { viewModel.updateTokensList(walletAddress) },
                 onFavoriteClick = { TODO() }
             )
         },
@@ -62,7 +67,8 @@ fun WalletScreen(
                 tokensList = tokensList,
                 modifier = Modifier.padding(it)
             )
-        }
+        },
+        modifier = modifier
     )
 
 }
@@ -78,10 +84,8 @@ private fun WalletTopBar(
 ) {
     val haptics = LocalHapticFeedback.current
     val clipboardManager = LocalClipboardManager.current
-    val context = LocalContext.current
 
     var isTopBarExpended by remember { mutableStateOf(false) }
-
     val topBarHeight by animateDpAsState(
         targetValue = if (isTopBarExpended) TopAppBarDefaults.MediumAppBarExpandedHeight
                         else TopAppBarDefaults.TopAppBarExpandedHeight,
@@ -104,7 +108,6 @@ private fun WalletTopBar(
                             onLongClick = {
                                 clipboardManager.setText(AnnotatedString(title))
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-//                                Toast.makeText(context, "Wallet copied to clipboard", Toast.LENGTH_SHORT).show()
                             },
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null

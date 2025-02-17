@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WalletWatcherTheme(
-                dynamicColor = true
+                dynamicColor = false
             ) {
                 RootAppNavigation()
             }

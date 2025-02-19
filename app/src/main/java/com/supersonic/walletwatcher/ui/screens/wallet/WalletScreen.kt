@@ -1,6 +1,5 @@
 package com.supersonic.walletwatcher.ui.screens.wallet
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -29,12 +28,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.view.HapticFeedbackConstantsCompat
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
 import com.supersonic.walletwatcher.ui.components.TokenBalancesList
 import com.supersonic.walletwatcher.utils.abbreviate
@@ -51,7 +51,7 @@ fun WalletScreen(
 
     val tokensList by viewModel.tokensList.collectAsState()
 
-    BackHandler(onBack = onNavigateBack)
+//    BackHandler(onBack = onNavigateBack)
 
     Scaffold(
         topBar = {
@@ -83,9 +83,11 @@ private fun WalletTopBar(
     modifier: Modifier = Modifier
 ) {
     val haptics = LocalHapticFeedback.current
+    val view = LocalView.current
     val clipboardManager = LocalClipboardManager.current
 
     var isTopBarExpended by remember { mutableStateOf(false) }
+
     val topBarHeight by animateDpAsState(
         targetValue = if (isTopBarExpended) TopAppBarDefaults.MediumAppBarExpandedHeight
                         else TopAppBarDefaults.TopAppBarExpandedHeight,
@@ -103,11 +105,13 @@ private fun WalletTopBar(
                         .combinedClickable(
                             onClick = {
                                 isTopBarExpended = !isTopBarExpended
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+//                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                view.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
                             },
                             onLongClick = {
                                 clipboardManager.setText(AnnotatedString(title))
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+//                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                view.performHapticFeedback(HapticFeedbackConstantsCompat.LONG_PRESS)
                             },
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -118,11 +122,14 @@ private fun WalletTopBar(
             expandedHeight = topBarHeight,
             navigationIcon = {
                 IconButton(
-                    onClick = onCloseClick
+                    onClick = {
+                        onCloseClick()
+                        view.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close WalletScreen"
+                        contentDescription = "Close WalletScreen icon"
                     )
                 }
             },

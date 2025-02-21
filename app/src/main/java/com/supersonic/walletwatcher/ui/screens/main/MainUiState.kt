@@ -14,5 +14,5 @@ sealed class FetchingUiState {
     data object InProgress: FetchingUiState()
     data object Success : FetchingUiState()
     data object NavigateToWallet : FetchingUiState()
-    data object Error : FetchingUiState()
+    data class Error(val message: String) : FetchingUiState()
 }

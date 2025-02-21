@@ -2,6 +2,7 @@ package com.supersonic.walletwatcher.ui.screens.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -16,6 +17,8 @@ class MainViewModel @Inject constructor(
     private val repository: CryptoRepository
 ) : ViewModel() {
 
+
+
     private val _mainUiState = MutableStateFlow(MainUiState())
     val mainUiState = _mainUiState.asStateFlow()
 
@@ -25,12 +28,8 @@ class MainViewModel @Inject constructor(
         _mainUiState.update { it.copy(fetchingUiState = fetchingUiState) }
     }
 
-    init {
-        resetState()
-    }
-
-    fun onWalletAddress(walletAddress: String){
-        _mainUiState.update { it.copy(walletAddress = walletAddress)}
+    fun updateWalletAddress(input: String){
+        _mainUiState.update { it.copy(walletAddress = input)}
     }
 
     fun fetchWalletBalance(){
@@ -38,28 +37,35 @@ class MainViewModel @Inject constructor(
             val validationResult = walletAddressValidator(_mainUiState.value.walletAddress)
             if (validationResult != WalletAddressValidationResult.CORRECT) {
                 _mainUiState.update { it.copy(validationResult = validationResult) }
-                updateFetchingSate(FetchingUiState.Error)
+                updateFetchingSate(FetchingUiState.Error(""))
                 delay(1000)
                 updateFetchingSate(FetchingUiState.Idle)
                 return@launch
             }
             updateFetchingSate(FetchingUiState.InProgress)
             _mainUiState.update { it.copy(validationResult = WalletAddressValidationResult.CORRECT) }
-            try {
-                val tokensList = repository.getWalletTokenBalances(_mainUiState.value.walletAddress)
-                _mainUiState.update { it.copy(tokensList = tokensList) }
-                updateFetchingSate(FetchingUiState.Success)
-                delay(500)
-                updateFetchingSate(FetchingUiState.NavigateToWallet)
-            } catch (e: Exception){
-                resetState()
+
+            when(val result = repository.getWalletTokenBalances(_mainUiState.value.walletAddress.trim())){
+                is ResultWrapper.Success -> {
+                    _mainUiState.update { it.copy(tokensList = result.data) }
+                    updateFetchingSate(FetchingUiState.Success)
+                    delay(500)
+                    updateFetchingSate(FetchingUiState.NavigateToWallet)
+                }
+                is ResultWrapper.Error -> {
+                    updateFetchingSate(FetchingUiState.Error(result.message))
+                    delay(1000)
+                    updateFetchingSate(FetchingUiState.Idle)
+                }
             }
-
         }
-
     }
+
+
 
     fun resetState(){
         _mainUiState.value = MainUiState()
     }
+
+
 }

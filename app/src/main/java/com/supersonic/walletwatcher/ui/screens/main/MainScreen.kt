@@ -1,5 +1,6 @@
 package com.supersonic.walletwatcher.ui.screens.main
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
@@ -41,16 +42,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supersonic.walletwatcher.R
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
 
@@ -60,12 +62,12 @@ fun MainScreen(
     onNavigationToWalletScreen:(List<TokenBalance>, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val mainUiState by viewModel.mainUiState.collectAsState()
+    val mainUiState by viewModel.mainUiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val view = LocalView.current
 
     DisposableEffect(Unit) {
-        viewModel.resetState()
-        onDispose { }
+        onDispose { viewModel.resetState() }
     }
 
     LaunchedEffect(mainUiState.fetchingUiState) {
@@ -76,7 +78,13 @@ fun MainScreen(
                     onNavigationToWalletScreen(mainUiState.tokensList, mainUiState.walletAddress)
                 }
             }
-            FetchingUiState.Error -> view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+            is FetchingUiState.Error -> {
+                val errorMessage = (mainUiState.fetchingUiState as FetchingUiState.Error).message
+                view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                if (errorMessage.isNotEmpty()){
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                }
+            }
 
             else -> {}
         }
@@ -86,13 +94,13 @@ fun MainScreen(
     Scaffold(
         modifier = modifier,
         topBar = { MainTopBar(stringResource(R.string.app_name)) },
-        content = {
+        content = { paddingValues ->
             MainScreenContent(
                 state = mainUiState,
-                onWalletAddress = viewModel::onWalletAddress,
+                onWalletAddress = { viewModel.updateWalletAddress(it) },
                 onSearchButtonClick = viewModel::fetchWalletBalance,
                 modifier = Modifier
-                    .padding(it)
+                    .padding(paddingValues)
             )
         }
     )
@@ -156,16 +164,7 @@ private fun MainScreenContent(
                 color = colorScheme.error,
             )
         }
-
-//        AnimatedVisibility(errorMessage.isNotEmpty()) {
-//            Text(
-//                text = errorMessage,
-//                color = colorScheme.error,
-//                modifier = Modifier.padding(top = 4.dp)
-//            )
-//        }
     }
-
 }
 
 @Composable
@@ -192,7 +191,6 @@ private fun WalletAddressInput(
             repeatMode = RepeatMode.Reverse
         )
     )
-
         Row(
             modifier = modifier,
             verticalAlignment = Alignment.CenterVertically
@@ -201,7 +199,8 @@ private fun WalletAddressInput(
                 value = text,
                 onValueChange = onTextChange,
                 readOnly = !isWalletAddressInputEnabled,
-                enabled = isWalletAddressInputEnabled,
+//                enabled = isWalletAddressInputEnabled,
+                isError = !isWalletAddressInputEnabled,
                 placeholder = {
                     Text(
                         text = "0x112532B200980Ddee8226023bEbBE2E6884C31e2",
@@ -256,7 +255,7 @@ private fun WalletAddressInput(
                         FetchingUiState.NavigateToWallet -> Icon(
                             imageVector = Icons.Default.Done,  contentDescription = null
                         )
-                        FetchingUiState.Error -> Icon(
+                        is FetchingUiState.Error -> Icon(
                             imageVector = Icons.Default.Close,
                             modifier = Modifier.rotate(errorRotation),
                             contentDescription = null

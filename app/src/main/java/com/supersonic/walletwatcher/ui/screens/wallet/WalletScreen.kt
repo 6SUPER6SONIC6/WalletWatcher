@@ -51,8 +51,6 @@ fun WalletScreen(
 
     val tokensList by viewModel.tokensList.collectAsState()
 
-//    BackHandler(onBack = onNavigateBack)
-
     Scaffold(
         topBar = {
             WalletTopBar(

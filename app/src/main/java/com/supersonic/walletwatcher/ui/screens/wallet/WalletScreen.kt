@@ -1,7 +1,19 @@
 package com.supersonic.walletwatcher.ui.screens.wallet
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,19 +36,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
 import com.supersonic.walletwatcher.ui.components.TokenBalancesList
 import com.supersonic.walletwatcher.utils.abbreviate
@@ -43,26 +60,39 @@ import com.supersonic.walletwatcher.utils.formatToCurrency
 @Composable
 fun WalletScreen(
     viewModel: WalletViewModel,
-//    tokensList: List<TokenBalance>,
-    walletAddress: String,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     ) {
 
-    val tokensList by viewModel.tokensList.collectAsState()
+    val walletUiState by viewModel.walletUiState.collectAsStateWithLifecycle()
+    val view = LocalView.current
+    val context = LocalContext.current
+
+    LaunchedEffect(walletUiState.refreshUiSate) {
+        when(walletUiState.refreshUiSate){
+            RefreshUiSate.Success -> view.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
+            is RefreshUiSate.Error -> {
+                view.performHapticFeedback(HapticFeedbackConstantsCompat.REJECT)
+                Toast.makeText(context, (walletUiState.refreshUiSate as RefreshUiSate.Error).message, Toast.LENGTH_LONG).show()
+            }
+
+            else -> {}
+        }
+    }
 
     Scaffold(
         topBar = {
             WalletTopBar(
-                title = walletAddress,
+                title = walletUiState.walletAddress,
+                refreshUiSate = walletUiState.refreshUiSate,
                 onCloseClick = onNavigateBack,
-                onRefreshClick = { viewModel.updateTokensList(walletAddress) },
+                onRefreshClick = viewModel::updateTokensList,
                 onFavoriteClick = { TODO() }
             )
         },
         content = {
             WalletScreenContent(
-                tokensList = tokensList,
+                tokensList = walletUiState.tokensList,
                 modifier = Modifier.padding(it)
             )
         },
@@ -75,12 +105,12 @@ fun WalletScreen(
 @Composable
 private fun WalletTopBar(
     title: String,
+    refreshUiSate: RefreshUiSate,
     onCloseClick: () -> Unit,
     onRefreshClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val haptics = LocalHapticFeedback.current
     val view = LocalView.current
     val clipboardManager = LocalClipboardManager.current
 
@@ -91,6 +121,23 @@ private fun WalletTopBar(
                         else TopAppBarDefaults.TopAppBarExpandedHeight,
         )
 
+    val infiniteTransition = rememberInfiniteTransition()
+    val refreshIconRotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (refreshUiSate is RefreshUiSate.InProgress) 360f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+    val errorIconRotation by infiniteTransition.animateFloat(
+        initialValue = -30f,
+        targetValue = 30f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(230),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
         TopAppBar(
             modifier = modifier,
             title = {
@@ -126,7 +173,7 @@ private fun WalletTopBar(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Close WalletScreen icon"
                     )
                 }
@@ -135,7 +182,28 @@ private fun WalletTopBar(
                 IconButton(
                     onClick = onRefreshClick
                 ) {
-                    Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                    AnimatedContent(
+                        targetState = refreshUiSate,
+                        contentAlignment = Alignment.Center,
+                        transitionSpec = { (scaleIn() + fadeIn()).togetherWith(fadeOut() + scaleOut())}
+                    ){ state ->
+                        when(state){
+                            RefreshUiSate.Success -> Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = "Refresh successful"
+                            )
+                            is RefreshUiSate.Error -> Icon(
+                                imageVector = Icons.Default.Close,
+                                modifier = Modifier.rotate(errorIconRotation),
+                                contentDescription = "Refresh error"
+                            )
+
+                            else -> Icon(
+                                imageVector = Icons.Default.Refresh,
+                                modifier = Modifier.rotate(refreshIconRotation),
+                                contentDescription = "Refresh")
+                        }
+                    }
                 }
                 IconButton(
                     onClick = onFavoriteClick
@@ -168,7 +236,6 @@ private fun WalletScreenContent(
             text = totalUsdValue.formatToCurrency(),
             style = typography.displayMedium
         )
-//        Spacer(Modifier.height(48.dp))
         TokenBalancesList(
             tokensList = tokensList.filter { it.usd_value != null },
             modifier = Modifier

@@ -31,25 +31,25 @@ fun RootAppNavigation(
         startDestination = startDestination,
         enterTransition = {
             slideInHorizontally(
-                initialOffsetX = { fullWidth -> fullWidth }, // Starts off-screen to the right
+                initialOffsetX = { fullWidth -> fullWidth },
                 animationSpec = tween(durationMillis = 500)
             )
         },
         exitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth }, // Moves off-screen to the left
+                targetOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = tween(durationMillis = 500)
             )
         },
         popEnterTransition = {
             slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth }, // Reverse direction for back navigation
+                initialOffsetX = { fullWidth -> -fullWidth },
                 animationSpec = tween(durationMillis = 500)
             )
         },
         popExitTransition = {
             slideOutHorizontally(
-                targetOffsetX = { fullWidth -> fullWidth }, // Reverse exit direction
+                targetOffsetX = { fullWidth -> fullWidth },
                 animationSpec = tween(durationMillis = 500)
             )
         }
@@ -81,11 +81,10 @@ fun RootAppNavigation(
                 }
             }
             val viewModel = hiltViewModel<WalletViewModel>()
+            viewModel.loadWalletAddress(args.walletAddress)
             viewModel.loadTokensList(tokenBalances)
             WalletScreen(
                 viewModel = viewModel,
-//                tokensList = tokenBalances,
-                walletAddress = args.walletAddress,
                 onNavigateBack = {
                     navController.navigateUp()
                 }

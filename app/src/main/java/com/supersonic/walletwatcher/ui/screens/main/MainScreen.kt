@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -131,7 +132,6 @@ private fun MainScreenContent(
 
     Column(
         modifier = modifier.padding(8.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -142,6 +142,7 @@ private fun MainScreenContent(
         WalletAddressInput(
             text = state.walletAddress,
             fetchingUiState = state.fetchingUiState,
+            isError = state.validationResult != WalletAddressValidationResult.CORRECT,
             onTextChange = onWalletAddress,
             onSearchClick = onSearchButtonClick,
             onClearTextClick = {onWalletAddress("")},
@@ -151,7 +152,6 @@ private fun MainScreenContent(
         AnimatedContent(
             targetState = state.validationResult,
             modifier = Modifier.padding(top = 4.dp),
-//            transitionSpec = { (scaleIn() + fadeIn()).togetherWith(fadeOut() + scaleOut())}
         ) { targetState ->
             val errorMessage = when(targetState){
                 WalletAddressValidationResult.EMPTY -> "This field must be filled in"
@@ -171,6 +171,7 @@ private fun MainScreenContent(
 private fun WalletAddressInput(
     text: String,
     fetchingUiState: FetchingUiState,
+    isError: Boolean,
     onTextChange: (String) -> Unit,
     onSearchClick: () -> Unit,
     onClearTextClick: () -> Unit,
@@ -182,8 +183,13 @@ private fun WalletAddressInput(
         else -> false
     }
 
+    val buttonContainerColor = when(fetchingUiState){
+        is FetchingUiState.Error -> colorScheme.error
+        else -> ButtonDefaults.buttonColors().containerColor
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
-    val errorRotation by infiniteTransition.animateFloat(
+    val errorIconRotation by infiniteTransition.animateFloat(
         initialValue = -30f,
         targetValue = 30f,
         animationSpec = infiniteRepeatable(
@@ -200,7 +206,7 @@ private fun WalletAddressInput(
                 onValueChange = onTextChange,
                 readOnly = !isWalletAddressInputEnabled,
 //                enabled = isWalletAddressInputEnabled,
-                isError = !isWalletAddressInputEnabled,
+                isError = isError,
                 placeholder = {
                     Text(
                         text = "0x112532B200980Ddee8226023bEbBE2E6884C31e2",
@@ -231,9 +237,9 @@ private fun WalletAddressInput(
             Spacer(Modifier.width(8.dp))
             Button(
                 onClick = {if (isWalletAddressInputEnabled) onSearchClick() },
-//                enabled = isWalletAddressInputEnabled,
                 modifier = Modifier.size(56.dp),
                 shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = buttonContainerColor),
                 contentPadding = PaddingValues(0.dp)
             ) {
                 AnimatedContent(
@@ -257,7 +263,7 @@ private fun WalletAddressInput(
                         )
                         is FetchingUiState.Error -> Icon(
                             imageVector = Icons.Default.Close,
-                            modifier = Modifier.rotate(errorRotation),
+                            modifier = Modifier.rotate(errorIconRotation),
                             contentDescription = null
                         )
                     }

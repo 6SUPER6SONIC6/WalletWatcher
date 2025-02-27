@@ -61,9 +61,10 @@ fun RootAppNavigation(
                 onNavigationToWalletScreen = { tokenBalances, walletAddress ->
                     navController.navigate(
                         WalletScreen(
-                            tokenBalances.map { item ->
-                        Json.encodeToString(TokenBalance.serializer(), item)
-                    }, walletAddress)
+                            walletBalances = tokenBalances.map { item ->
+                                Json.encodeToString(TokenBalance.serializer(), item) },
+                            walletAddress = walletAddress
+                        )
                     )
                 },
                 modifier = Modifier.fillMaxSize()
@@ -80,9 +81,9 @@ fun RootAppNavigation(
                     Json.decodeFromString(TokenBalance.serializer(), tokenBalance)
                 }
             }
+
             val viewModel = hiltViewModel<WalletViewModel>()
-            viewModel.loadWalletAddress(args.walletAddress)
-            viewModel.loadTokensList(tokenBalances)
+            viewModel.loadWalletData(args.walletAddress, tokenBalances)
             WalletScreen(
                 viewModel = viewModel,
                 onNavigateBack = {

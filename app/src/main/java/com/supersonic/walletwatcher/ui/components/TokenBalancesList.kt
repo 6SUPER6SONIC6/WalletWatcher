@@ -33,15 +33,30 @@ fun TokenBalancesList(
     tokensList: List<TokenBalance>,
     modifier: Modifier = Modifier,
 ) {
+    val totalUsdValue = tokensList.mapNotNull { it.usd_value }.sum()
+
     LazyColumn(
         modifier = modifier
     ) {
+        item {
+            Column {
+                Text(
+                    text = "Total balance",
+                    style = typography.titleLarge
+                )
+                Text(
+                    text = totalUsdValue.formatToCurrency(),
+                    style = typography.displayMedium
+                )
+            }
+        }
         items(tokensList){ token ->
             TokenBalancesListItem(
                 token = token,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
+                    .animateItem()
             )
         }
     }
@@ -106,7 +121,7 @@ private fun TokenBalancesListItem(
             }
 //            Spacer(Modifier.height(2.dp))
             Text(
-                text = token.balance_formatted.formatBalance(5),
+                text = token.balance_formatted.formatBalance(),
                 style = typography.bodyMedium,
                 color = colorScheme.outline,
                 maxLines = 1,

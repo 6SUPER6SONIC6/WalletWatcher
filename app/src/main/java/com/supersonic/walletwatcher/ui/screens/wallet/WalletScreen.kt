@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -30,8 +32,9 @@ import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,9 +56,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Transaction
 import com.supersonic.walletwatcher.ui.components.TokenBalancesList
+import com.supersonic.walletwatcher.ui.components.TransactionsHistoryList
 import com.supersonic.walletwatcher.utils.abbreviate
-import com.supersonic.walletwatcher.utils.formatToCurrency
 
 @Composable
 fun WalletScreen(
@@ -86,14 +90,20 @@ fun WalletScreen(
                 title = walletUiState.walletAddress,
                 refreshUiSate = walletUiState.refreshUiSate,
                 onCloseClick = onNavigateBack,
-                onRefreshClick = viewModel::updateTokensList,
+                onRefreshClick = viewModel::refreshWallet,
                 onFavoriteClick = { TODO() }
             )
         },
         content = {
             WalletScreenContent(
                 tokensList = walletUiState.tokensList,
-                modifier = Modifier.padding(it)
+                transactionsList = walletUiState.transactionHistoryList,
+                tabsList = walletUiState.tabs,
+                selectedTabIndex = walletUiState.selectedTabIndex,
+                onTabSelected = viewModel::onTabSelected,
+                modifier = Modifier
+                    .padding(it)
+                    .fillMaxSize()
             )
         },
         modifier = modifier
@@ -218,29 +228,87 @@ private fun WalletTopBar(
 @Composable
 private fun WalletScreenContent(
     tokensList: List<TokenBalance>,
+    transactionsList: List<Transaction>,
+    tabsList: List<WalletTabItem>,
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    val totalUsdValue = tokensList.mapNotNull { it.usd_value }.sum()
+    val pagerState = rememberPagerState { tabsList.size }
+
+    LaunchedEffect(selectedTabIndex) {
+            pagerState.animateScrollToPage(selectedTabIndex)
+    }
+
+    LaunchedEffect(pagerState.targetPage) {
+        onTabSelected(pagerState.targetPage)
+    }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(4.dp),
+        modifier = modifier.padding(horizontal = 8.dp)
     ) {
-        Text(
-            text = "Total balance",
-            style = typography.titleLarge
-        )
-        Text(
-            text = totalUsdValue.formatToCurrency(),
-            style = typography.displayMedium
-        )
-        TokenBalancesList(
-            tokensList = tokensList.filter { it.usd_value != null },
+        TabRow(
+            selectedTabIndex = selectedTabIndex,
+        ) {
+            tabsList.forEachIndexed { index, item ->
+                Tab(
+                    selected = index == selectedTabIndex,
+                    onClick = {onTabSelected(index)},
+                    text = {
+                        Text(
+                            text = item.title
+                        )
+                    }
+                )
+            }
+        }
+        HorizontalPager(
+            state = pagerState,
+            pageSpacing = 16.dp,
+            verticalAlignment = Alignment.Top,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp)
-        )
+                .weight(1F)
+        ) { index ->
+            when(index){
+                0 -> PortfolioContent(tokensList = tokensList, modifier = Modifier.fillMaxWidth())
+                1 -> HistoryContent(transactionsList = transactionsList)
+            }
+
+        }
+//        AnimatedContent(
+//            targetState = selectedTabIndex,
+//            modifier = Modifier.weight(1F)
+//        ) { tabIndex ->
+//            when(tabIndex){
+//                0 -> PortfolioContent(tokensList = tokensList, modifier = Modifier.fillMaxWidth())
+//                1 -> HistoryContent(transactionsList = transactionsList)
+//            }
+//        }
     }
 }
+
+@Composable
+private fun PortfolioContent(
+    tokensList: List<TokenBalance>,
+    modifier: Modifier = Modifier
+) {
+        TokenBalancesList(
+            tokensList = tokensList.filter { it.usd_value != null },
+            modifier = modifier
+        )
+}
+
+@Composable
+private fun HistoryContent(
+    transactionsList: List<Transaction>,
+    modifier: Modifier = Modifier
+) {
+    TransactionsHistoryList(
+        transactionsList = transactionsList,
+        modifier = modifier
+    )
+}
+
+

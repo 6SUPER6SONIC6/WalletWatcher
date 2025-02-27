@@ -6,6 +6,7 @@ import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,26 +26,52 @@ class WalletViewModel @Inject constructor(
         _walletUiState.update { it.copy(refreshUiSate = newState) }
     }
 
-    fun loadTokensList(tokensList: List<TokenBalance>){
+    fun loadWalletData(walletAddress: String, tokensList: List<TokenBalance>){
+        _walletUiState.update { it.copy(walletAddress = walletAddress) }
         _walletUiState.update { it.copy(tokensList = tokensList) }
+        loadTransactionsHistory(walletAddress)
     }
 
-    fun loadWalletAddress(address: String){
-        _walletUiState.update { it.copy(walletAddress = address) }
-    }
-
-    fun updateTokensList(){
+    private fun loadTransactionsHistory(walletAddress: String){
         viewModelScope.launch {
-            updateRefreshState(RefreshUiSate.InProgress)
-            when(val result = repository.getWalletTokenBalances(_walletUiState.value.walletAddress)){
-                is ResultWrapper.Success -> onRefreshSuccess(result.data)
-                is ResultWrapper.Error -> onRefreshError(result.message)
+            when(val transactions = repository.getWalletTransactionHistory(walletAddress)){
+                is ResultWrapper.Success -> _walletUiState.update { it.copy(transactionHistoryList = transactions.data) }
+                is ResultWrapper.Error -> {
+                    onRefreshError(transactions.message)
+                    return@launch
+                }
             }
         }
     }
 
-    private fun onRefreshSuccess(result: List<TokenBalance>){
-        _walletUiState.update { it.copy(tokensList = result) }
+    fun refreshWallet(){
+        viewModelScope.launch {
+            updateRefreshState(RefreshUiSate.InProgress)
+
+            val walletAddress = _walletUiState.value.walletAddress
+
+            val balancesResult = async { repository.getWalletTokenBalances(walletAddress) }
+            val transactionsResult = async { repository.getWalletTransactionHistory(walletAddress) }
+
+            when(val balances = balancesResult.await()) {
+                is ResultWrapper.Success -> _walletUiState.update { it.copy(tokensList = balances.data) }
+                is ResultWrapper.Error -> {
+                    onRefreshError(balances.message)
+                    return@launch
+                }
+            }
+            when(val transactions = transactionsResult.await()){
+                is ResultWrapper.Success -> _walletUiState.update { it.copy(transactionHistoryList = transactions.data) }
+                is ResultWrapper.Error -> {
+                    onRefreshError(transactions.message)
+                    return@launch
+                }
+            }
+            onRefreshSuccess()
+        }
+    }
+
+    private fun onRefreshSuccess(){
         updateRefreshState(RefreshUiSate.Success)
         viewModelScope.launch {
             delay(1000)
@@ -58,5 +85,9 @@ class WalletViewModel @Inject constructor(
             delay(1000)
             updateRefreshState(RefreshUiSate.Idle)
         }
+    }
+
+    fun onTabSelected(index: Int){
+        _walletUiState.update { it.copy(selectedTabIndex = index) }
     }
 }

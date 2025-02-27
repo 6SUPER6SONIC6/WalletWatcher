@@ -9,12 +9,17 @@ fun Float.formatToCurrency(): String {
     return NumberFormat.getCurrencyInstance(Locale.US).format(this).replace(","," ")
 }
 
-fun String.formatBalance(decimals: Int = 4): String {
-    return BigDecimal(this)
-        .setScale(decimals, RoundingMode.DOWN)
-        .toPlainString()
+fun String.formatBalance(): String {
+    val bigDecimal = BigDecimal(this)
+    return when {
+        bigDecimal < BigDecimal("0") -> bigDecimal.setScale(3, RoundingMode.UP).toPlainString()
+        bigDecimal < BigDecimal("5") -> bigDecimal.setScale(4, RoundingMode.DOWN).stripTrailingZeros().toPlainString()
+        bigDecimal < BigDecimal("10") -> bigDecimal.setScale(2, RoundingMode.DOWN).stripTrailingZeros().toPlainString()
+        bigDecimal < BigDecimal("100") -> bigDecimal.setScale(1, RoundingMode.DOWN).stripTrailingZeros().toPlainString()
+        else -> bigDecimal.setScale(0, RoundingMode.DOWN).stripTrailingZeros().toPlainString()
+    }
 }
 
 fun String.abbreviate(): String {
-    return if (length > 10) "${take(6)}...${takeLast(6)}" else this
+    return if (length > 10) "${take(6)}...${takeLast(4)}" else this
 }

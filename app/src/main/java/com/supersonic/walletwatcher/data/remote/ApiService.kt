@@ -1,8 +1,12 @@
 package com.supersonic.walletwatcher.data.remote
 
+import android.util.Log
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
 import com.supersonic.walletwatcher.data.remote.models.TokenBalance
 import com.supersonic.walletwatcher.data.remote.models.TokenBalancesResponse
+import com.supersonic.walletwatcher.data.remote.models.Transaction
+import com.supersonic.walletwatcher.data.remote.models.TransactionHistoryResponse
+import com.supersonic.walletwatcher.data.remote.models.toTransaction
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -18,11 +22,22 @@ class ApiService @Inject constructor(private val client: HttpClient) {
     suspend fun getWalletTokenBalances(walletAddress: String) : ResultWrapper<List<TokenBalance>> {
        return safeApiCall {
             val endPoint = "wallets/$walletAddress/tokens"
-
             client.get(endPoint){
                 parameter("chain","eth")
                 parameter("exclude_spam", true)
             }.body<TokenBalancesResponse>().result
+        }
+    }
+
+    suspend fun getWalletTransactionHistory(walletAddress: String) : ResultWrapper<List<Transaction>> {
+        return safeApiCall {
+            val endPoint = "wallets/$walletAddress/history"
+            val response: TransactionHistoryResponse = client.get(endPoint){
+                parameter("chain","eth")
+                parameter("exclude_spam", true)
+            }.body()
+
+            response.result.flatMap { it.toTransaction() }
         }
     }
 
@@ -42,7 +57,8 @@ class ApiService @Inject constructor(private val client: HttpClient) {
             ResultWrapper.Error("Data error. Unable to process response.")
 
         } catch (e: Exception) { // Fallback for unexpected errors
-            ResultWrapper.Error("Unexpected error. ${e.localizedMessage.orEmpty()}")
+            Log.e("Api Call", e.localizedMessage.orEmpty(), e)
+            ResultWrapper.Error("Unexpected error. Try again.")
         }
     }
 }

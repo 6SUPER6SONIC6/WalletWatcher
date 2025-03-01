@@ -30,6 +30,7 @@ android {
         val properties = Properties()
         properties.load(project.rootProject.file("local.properties").inputStream())
         buildConfigField("String", "MORALIS_API_KEY", properties.getProperty("MORALIS_API_KEY"))
+        buildConfigField("String", "ETHPLORER_API_KEY", properties.getProperty("ETHPLORER_API_KEY"))
     }
 
     buildTypes {

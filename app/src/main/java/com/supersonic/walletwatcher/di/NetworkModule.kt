@@ -1,6 +1,5 @@
 package com.supersonic.walletwatcher.di
 
-import com.supersonic.walletwatcher.BuildConfig
 import com.supersonic.walletwatcher.data.remote.ApiService
 import dagger.Module
 import dagger.Provides
@@ -18,8 +17,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val API_KEY = BuildConfig.MORALIS_API_KEY
-    private const val BASE_URL = "https://deep-index.moralis.io/api/v2.2/"
+    private const val BASE_URL = "https://api.ethplorer.io/"
 
 
     @Provides
@@ -33,9 +31,6 @@ object NetworkModule {
             }
             install(DefaultRequest){
                 url(BASE_URL)
-                headers.append("Accept", "application/json")
-                headers.append("ContentType", "application/json")
-                headers.append("X-API-Key", API_KEY)
             }
         }
     }

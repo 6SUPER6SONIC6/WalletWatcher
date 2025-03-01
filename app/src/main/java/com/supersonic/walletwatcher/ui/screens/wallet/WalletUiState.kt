@@ -1,13 +1,13 @@
 package com.supersonic.walletwatcher.ui.screens.wallet
 
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.remote.models.Transaction
 
 data class WalletUiState(
     val walletAddress: String = "",
-    val tokensList: List<TokenBalance> = listOf(),
+    val tokensList: List<Token> = listOf(),
     val transactionHistoryList: List<Transaction> = listOf(),
-    val tabs: List<WalletTabItem> = listOf(WalletTabItem("Portfolio"),WalletTabItem("History")),
+    val tabs: List<WalletTabItem> = listOf(WalletTabItem("Portfolio"),WalletTabItem("Transactions")),
     val selectedTabIndex: Int = 0,
     val refreshUiSate: RefreshUiSate = RefreshUiSate.Idle
 )

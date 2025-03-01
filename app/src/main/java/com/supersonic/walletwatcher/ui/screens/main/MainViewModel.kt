@@ -3,7 +3,7 @@ package com.supersonic.walletwatcher.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -43,7 +43,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onSuccess(result: List<TokenBalance>){
+    private fun onSuccess(result: List<Token>){
         _mainUiState.update { it.copy(tokensList = result) }
         updateFetchingSate(FetchingUiState.Success)
         viewModelScope.launch {

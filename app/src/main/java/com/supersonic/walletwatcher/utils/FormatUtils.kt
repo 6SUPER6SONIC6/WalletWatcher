@@ -9,6 +9,11 @@ fun Float.formatToCurrency(): String {
     return NumberFormat.getCurrencyInstance(Locale.US).format(this).replace(","," ")
 }
 
+fun String.formatFromWei(decimals: Int): BigDecimal {
+    val weiBigDecimal = this.toBigDecimal()
+    return weiBigDecimal.movePointLeft(decimals)
+}
+
 fun String.formatBalance(): String {
     val bigDecimal = BigDecimal(this)
     return when {

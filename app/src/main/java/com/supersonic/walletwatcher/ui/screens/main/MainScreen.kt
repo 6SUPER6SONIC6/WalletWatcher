@@ -55,12 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supersonic.walletwatcher.R
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
-    onNavigationToWalletScreen:(List<TokenBalance>, String) -> Unit,
+    onNavigationToWalletScreen:(List<Token>, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mainUiState by viewModel.mainUiState.collectAsStateWithLifecycle()

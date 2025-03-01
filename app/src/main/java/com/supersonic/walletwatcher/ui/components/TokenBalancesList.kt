@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -24,18 +26,20 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.utils.formatBalance
 import com.supersonic.walletwatcher.utils.formatToCurrency
 
 @Composable
 fun TokenBalancesList(
-    tokensList: List<TokenBalance>,
     modifier: Modifier = Modifier,
+    tokensList: List<Token>,
+    listState: LazyListState = rememberLazyListState()
 ) {
-    val totalUsdValue = tokensList.mapNotNull { it.usd_value }.sum()
+    val totalUsdValue = tokensList.map { it.price }.sum().formatToCurrency()
 
     LazyColumn(
+        state = listState,
         modifier = modifier
     ) {
         item {
@@ -45,7 +49,7 @@ fun TokenBalancesList(
                     style = typography.titleLarge
                 )
                 Text(
-                    text = totalUsdValue.formatToCurrency(),
+                    text = totalUsdValue,
                     style = typography.displayMedium
                 )
             }
@@ -64,7 +68,7 @@ fun TokenBalancesList(
 
 @Composable
 private fun TokenBalancesListItem(
-    token: TokenBalance,
+    token: Token,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -75,7 +79,8 @@ private fun TokenBalancesListItem(
         modifier = modifier
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1F)
         ) {
             Surface(
                 shape = CircleShape,
@@ -104,24 +109,24 @@ private fun TokenBalancesListItem(
                     style = typography.bodyMedium,
                     color = colorScheme.outline,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(.8F)
                 )
             }
         }
+        
         Column(
             horizontalAlignment = Alignment.End
         ) {
-            token.usd_value?.let {
-                Text(
-                    text = it.formatToCurrency(),
-                    style = typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                text = token.price.formatToCurrency(),
+                style = typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 //            Spacer(Modifier.height(2.dp))
             Text(
-                text = token.balance_formatted.formatBalance(),
+                text = token.balance.formatBalance(),
                 style = typography.bodyMedium,
                 color = colorScheme.outline,
                 maxLines = 1,

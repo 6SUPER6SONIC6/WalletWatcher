@@ -17,10 +17,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -40,9 +42,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,11 +59,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.remote.models.Transaction
+import com.supersonic.walletwatcher.ui.components.GoUpButton
 import com.supersonic.walletwatcher.ui.components.TokenBalancesList
 import com.supersonic.walletwatcher.ui.components.TransactionsHistoryList
 import com.supersonic.walletwatcher.utils.abbreviate
+import kotlinx.coroutines.launch
 
 @Composable
 fun WalletScreen(
@@ -227,7 +233,7 @@ private fun WalletTopBar(
 
 @Composable
 private fun WalletScreenContent(
-    tokensList: List<TokenBalance>,
+    tokensList: List<Token>,
     transactionsList: List<Transaction>,
     tabsList: List<WalletTabItem>,
     selectedTabIndex: Int,
@@ -273,31 +279,43 @@ private fun WalletScreenContent(
         ) { index ->
             when(index){
                 0 -> PortfolioContent(tokensList = tokensList, modifier = Modifier.fillMaxWidth())
-                1 -> HistoryContent(transactionsList = transactionsList)
+                1 -> HistoryContent(transactionsList = transactionsList, modifier = Modifier.fillMaxSize())
             }
 
         }
-//        AnimatedContent(
-//            targetState = selectedTabIndex,
-//            modifier = Modifier.weight(1F)
-//        ) { tabIndex ->
-//            when(tabIndex){
-//                0 -> PortfolioContent(tokensList = tokensList, modifier = Modifier.fillMaxWidth())
-//                1 -> HistoryContent(transactionsList = transactionsList)
-//            }
-//        }
     }
 }
 
 @Composable
 private fun PortfolioContent(
-    tokensList: List<TokenBalance>,
+    tokensList: List<Token>,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
+    val tokensListState = rememberLazyListState()
+    val showUpButton by remember {
+        derivedStateOf { tokensListState.firstVisibleItemIndex > 3 }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         TokenBalancesList(
-            tokensList = tokensList.filter { it.usd_value != null },
+            tokensList = tokensList,
+            listState = tokensListState,
             modifier = modifier
         )
+
+        GoUpButton(
+            visible = showUpButton,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(8.dp),
+            onClick = {
+                scope.launch {
+                    tokensListState.scrollToItem(0)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -305,10 +323,31 @@ private fun HistoryContent(
     transactionsList: List<Transaction>,
     modifier: Modifier = Modifier
 ) {
-    TransactionsHistoryList(
-        transactionsList = transactionsList,
-        modifier = modifier
-    )
+    val scope = rememberCoroutineScope()
+    val transactionsListState = rememberLazyListState()
+    val showUpButton by remember {
+        derivedStateOf { transactionsListState.firstVisibleItemIndex > 5 }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()){
+        TransactionsHistoryList(
+            transactionsList = transactionsList,
+            listState = transactionsListState,
+            modifier = modifier
+        )
+
+        GoUpButton(
+            visible = showUpButton,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(8.dp),
+            onClick = {
+                scope.launch {
+                    transactionsListState.scrollToItem(0)
+                }
+            }
+        )
+    }
 }
 
 

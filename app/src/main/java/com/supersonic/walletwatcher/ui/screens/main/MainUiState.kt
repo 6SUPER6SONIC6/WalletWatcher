@@ -1,10 +1,10 @@
 package com.supersonic.walletwatcher.ui.screens.main
 
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 
 data class MainUiState(
     val walletAddress: String = "",
-    val tokensList: List<TokenBalance> = listOf(),
+    val tokensList: List<Token> = listOf(),
     val validationResult: WalletAddressValidationResult = WalletAddressValidationResult.CORRECT,
     val fetchingUiState: FetchingUiState = FetchingUiState.Idle
 )

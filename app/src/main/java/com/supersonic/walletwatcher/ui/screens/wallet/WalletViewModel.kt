@@ -3,7 +3,7 @@ package com.supersonic.walletwatcher.ui.screens.wallet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -26,7 +26,7 @@ class WalletViewModel @Inject constructor(
         _walletUiState.update { it.copy(refreshUiSate = newState) }
     }
 
-    fun loadWalletData(walletAddress: String, tokensList: List<TokenBalance>){
+    fun loadWalletData(walletAddress: String, tokensList: List<Token>){
         _walletUiState.update { it.copy(walletAddress = walletAddress) }
         _walletUiState.update { it.copy(tokensList = tokensList) }
         loadTransactionsHistory(walletAddress)

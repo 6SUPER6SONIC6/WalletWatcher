@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.supersonic.walletwatcher.data.remote.models.TokenBalance
+import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.ui.screens.main.MainScreen
 import com.supersonic.walletwatcher.ui.screens.main.MainViewModel
 import com.supersonic.walletwatcher.ui.screens.wallet.WalletScreen
@@ -62,7 +62,7 @@ fun RootAppNavigation(
                     navController.navigate(
                         WalletScreen(
                             walletBalances = tokenBalances.map { item ->
-                                Json.encodeToString(TokenBalance.serializer(), item) },
+                                Json.encodeToString(Token.serializer(), item) },
                             walletAddress = walletAddress
                         )
                     )
@@ -78,7 +78,7 @@ fun RootAppNavigation(
                 emptyList()
             } else {
                 args.walletBalances.map { tokenBalance ->
-                    Json.decodeFromString(TokenBalance.serializer(), tokenBalance)
+                    Json.decodeFromString(Token.serializer(), tokenBalance)
                 }
             }
 

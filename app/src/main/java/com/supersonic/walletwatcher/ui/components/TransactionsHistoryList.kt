@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -30,10 +32,13 @@ import com.supersonic.walletwatcher.utils.formatBalance
 
 @Composable
 fun TransactionsHistoryList(
+    modifier: Modifier = Modifier,
     transactionsList: List<Transaction>,
-    modifier: Modifier = Modifier) {
+    listState: LazyListState = rememberLazyListState(),
+    ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
+        state = listState
     ) {
         items(transactionsList){ transaction ->
             TransactionItem(transaction, Modifier.animateItem())
@@ -47,13 +52,7 @@ private fun TransactionItem(
     modifier: Modifier
 ) {
 
-    val itemTitle = when(transaction.type){
-        TransactionType.RECEIVE, TransactionType.TOKEN_RECEIVE -> transaction.type.typeName
-        TransactionType.SEND, TransactionType.TOKEN_SEND -> transaction.type.typeName
-        TransactionType.TOKEN_SWAP -> transaction.type.typeName
-
-        else -> transaction.summary
-    }
+    val itemTitle = transaction.type.typeName
     val itemBody = when(transaction.type){
         TransactionType.RECEIVE, TransactionType.TOKEN_RECEIVE -> "From ${transaction.from.abbreviate()}"
         TransactionType.SEND, TransactionType.TOKEN_SEND -> "To ${transaction.to.abbreviate()}"
@@ -104,12 +103,10 @@ private fun TransactionItem(
                 Column(
 //                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (itemTitle != null) {
-                        Text(
-                            text = itemTitle,
-                            style = typography.bodyLarge
-                        )
-                    }
+                    Text(
+                        text = itemTitle,
+                        style = typography.bodyLarge
+                    )
                     Spacer(Modifier.height(4.dp))
                     if (itemBody != null) {
                         Text(

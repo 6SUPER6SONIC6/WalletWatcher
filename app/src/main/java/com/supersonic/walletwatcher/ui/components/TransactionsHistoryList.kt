@@ -27,8 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.supersonic.walletwatcher.data.remote.models.Transaction
 import com.supersonic.walletwatcher.data.remote.models.TransactionType
-import com.supersonic.walletwatcher.utils.abbreviate
+import com.supersonic.walletwatcher.utils.abbreviateWalletAddress
 import com.supersonic.walletwatcher.utils.formatBalance
+import com.supersonic.walletwatcher.utils.formatTimestampToDate
 
 @Composable
 fun TransactionsHistoryList(
@@ -54,8 +55,8 @@ private fun TransactionItem(
 
     val itemTitle = transaction.type.typeName
     val itemBody = when(transaction.type){
-        TransactionType.RECEIVE, TransactionType.TOKEN_RECEIVE -> "From ${transaction.from.abbreviate()}"
-        TransactionType.SEND, TransactionType.TOKEN_SEND -> "To ${transaction.to.abbreviate()}"
+        TransactionType.RECEIVE, TransactionType.TOKEN_RECEIVE -> "From ${transaction.from.abbreviateWalletAddress()}"
+        TransactionType.SEND, TransactionType.TOKEN_SEND -> "To ${transaction.to.abbreviateWalletAddress()}"
         TransactionType.TOKEN_SWAP -> transaction.amount
 
         else -> null
@@ -63,9 +64,15 @@ private fun TransactionItem(
     val itemAmount = when(transaction.type){
         TransactionType.RECEIVE, TransactionType.TOKEN_RECEIVE -> "+${transaction.amount.formatBalance()} ${transaction.tokenSymbol}"
         TransactionType.SEND, TransactionType.TOKEN_SEND -> "-${transaction.amount.formatBalance()} ${transaction.tokenSymbol}"
+//        TransactionType.TOKEN_SWAP -> formatTimestampToDate(transaction.timestamp)
 
         else -> null
 
+    }
+    val date = when(transaction.type){
+        TransactionType.SEND, TransactionType.RECEIVE, TransactionType.TOKEN_SWAP -> transaction.timestamp.formatTimestampToDate()
+
+        else -> null
     }
 
     Card(
@@ -73,6 +80,7 @@ private fun TransactionItem(
             .fillMaxWidth()
             .padding(top = 8.dp)
             .defaultMinSize(minHeight = 80.dp)
+
 //            .height(120.dp)
     ) {
         Row(
@@ -100,30 +108,40 @@ private fun TransactionItem(
 
                 Spacer(Modifier.width(16.dp))
 
-                Column(
-//                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Column {
                     Text(
                         text = itemTitle,
-                        style = typography.bodyLarge
+                        style = typography.bodyMedium
                     )
                     Spacer(Modifier.height(4.dp))
                     if (itemBody != null) {
                         Text(
                             text = itemBody,
-                            style = typography.bodyMedium,
+                            style = typography.bodySmall,
                             color = colorScheme.outline
                         )
                     }
                 }
             }
 
-            if (itemAmount != null) {
-                Text(
-                    text = itemAmount,
-                    style = typography.bodyMedium,
-                )
-            }
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    if (itemAmount != null){
+                        Text(
+                            text = itemAmount,
+                            style = typography.bodyMedium,
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    if (date != null){
+                        Text(
+                            text = date,
+                            style = typography.bodySmall,
+                            color = colorScheme.outline
+                        )
+                    }
+                }
         }
     }
 }

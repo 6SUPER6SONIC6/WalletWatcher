@@ -21,6 +21,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import kotlinx.serialization.SerializationException
 import java.io.IOException
+import java.math.BigDecimal
 import javax.inject.Inject
 
 
@@ -36,7 +37,7 @@ class ApiService @Inject constructor(private val client: HttpClient) {
                 parameter("apiKey", API_KEY)
             }.body()
 
-           response.toToken()
+           response.toToken().filter { it.balance.toBigDecimal() != BigDecimal.ZERO }
         }
     }
 
@@ -53,6 +54,7 @@ class ApiService @Inject constructor(private val client: HttpClient) {
         val endPoint = "/getAddressHistory/$walletAddress"
         val response: TransactionHistoryResponse = client.get(endPoint) {
             parameter("apiKey", API_KEY)
+            parameter("type", "transfer")
             parameter("limit", 1000)
         }.body()
 

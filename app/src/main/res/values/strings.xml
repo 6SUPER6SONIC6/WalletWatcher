@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">Wallet Watcher</string>
+
+    // Recent Searches
+    <string name="recent_searches_empty_text_title">No recent searches found</string>
+    <string name="recent_searches_empty_text_body">Your latest searches will be saved here for quick access</string>
+    <string name="recent_searches_title">Recent searches</string>
+
+    <string name="saved_wallets_title">Saved wallets</string>
+
+    // Wallet Address Input
+    <string name="wallet_address_input_title">Enter wallet address</string>
+    <string name="wallet_address_input_error_empty">This field must be filled in</string>
+    <string name="wallet_address_input_error_incorrect">Wallet address is invalid</string>
+    <string name="wallet_address_input_placeholder">0x112532B200980Ddee8226023bEbBE2E6884C31e2</string>
+
+    <string name="clear_history_dialog_title">Clear All Searches?</string>
+    <string name="clear_history_dialog_text">This will delete all recent searches permanently.</string>
+    <string name="clear_history_dialog_confirm">Clear</string>
+    <string name="clear_history_dialog_dismiss">Cancel</string>
 </resources>

@@ -6,11 +6,11 @@ import androidx.compose.material.icons.automirrored.filled.CallReceived
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -75,7 +75,7 @@ enum class TransactionType(val typeName: String, val icon: ImageVector){
     TOKEN_RECEIVE("Received", receiveIcon),
     DEPOSIT("Deposited", Icons.Default.VerticalAlignBottom),
     WITHDRAW("Withdrawn", Icons.Default.VerticalAlignTop),
-    TOKEN_SWAP("Swapped", Icons.Default.CurrencyExchange),
+    TOKEN_SWAP("Swapped", Icons.Default.SwapHoriz),
     AIRDROP("Airdrop", receiveIcon),
     MINT("Minted" , Icons.Default.Add),
     BURN("Burned", Icons.Default.LocalFireDepartment),

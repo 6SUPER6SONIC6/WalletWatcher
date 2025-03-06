@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -90,8 +91,9 @@ private fun TokenBalancesListItem(
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(token.logo)
-                        .crossfade(true)
+                        .crossfade(120)
                         .build(),
+                    filterQuality = FilterQuality.None,
                     contentDescription = "Token Logo",
                 )
             }

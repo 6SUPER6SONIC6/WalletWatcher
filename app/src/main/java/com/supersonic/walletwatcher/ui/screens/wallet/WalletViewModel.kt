@@ -87,7 +87,7 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    fun onTabSelected(index: Int){
-        _walletUiState.update { it.copy(selectedTabIndex = index) }
+    fun onTabSelected(tab: WalletScreenTab){
+        _walletUiState.update { it.copy(selectedTab = tab) }
     }
 }

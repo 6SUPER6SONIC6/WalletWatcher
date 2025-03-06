@@ -7,8 +7,11 @@ data class WalletUiState(
     val walletAddress: String = "",
     val tokensList: List<Token> = listOf(),
     val transactionHistoryList: List<Transaction> = listOf(),
-    val tabs: List<WalletTabItem> = listOf(WalletTabItem("Portfolio"),WalletTabItem("Transactions")),
-    val selectedTabIndex: Int = 0,
+    val tabs: List<WalletScreenTab> = listOf(
+        WalletScreenTab.Portfolio(),
+        WalletScreenTab.TransactionsHistory()
+                ),
+    val selectedTab: WalletScreenTab = WalletScreenTab.Portfolio(),
     val refreshUiSate: RefreshUiSate = RefreshUiSate.Idle
 )
 
@@ -19,6 +22,7 @@ sealed class RefreshUiSate {
     data class Error(val message: String): RefreshUiSate()
 }
 
-data class WalletTabItem(
-    val title: String
-)
+sealed class WalletScreenTab {
+    data class Portfolio(val title: String = "Portfolio"): WalletScreenTab()
+    data class TransactionsHistory(val title: String = "Transactions"): WalletScreenTab()
+}

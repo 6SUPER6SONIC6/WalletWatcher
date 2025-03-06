@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -30,7 +31,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.twotone.Star
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,7 +66,7 @@ import com.supersonic.walletwatcher.data.remote.models.Transaction
 import com.supersonic.walletwatcher.ui.components.GoUpButton
 import com.supersonic.walletwatcher.ui.components.TokenBalancesList
 import com.supersonic.walletwatcher.ui.components.TransactionsHistoryList
-import com.supersonic.walletwatcher.utils.abbreviate
+import com.supersonic.walletwatcher.utils.abbreviateWalletAddress
 import kotlinx.coroutines.launch
 
 @Composable
@@ -105,7 +107,7 @@ fun WalletScreen(
                 tokensList = walletUiState.tokensList,
                 transactionsList = walletUiState.transactionHistoryList,
                 tabsList = walletUiState.tabs,
-                selectedTabIndex = walletUiState.selectedTabIndex,
+                selectedTab = walletUiState.selectedTab,
                 onTabSelected = viewModel::onTabSelected,
                 modifier = Modifier
                     .padding(it)
@@ -158,7 +160,7 @@ private fun WalletTopBar(
             modifier = modifier,
             title = {
                 Text(
-                    text = if (isTopBarExpended) title else title.abbreviate(),
+                    text = if (isTopBarExpended) title else title.abbreviateWalletAddress(),
                     maxLines = if (isTopBarExpended) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Visible,
                     modifier = Modifier
@@ -224,7 +226,7 @@ private fun WalletTopBar(
                 IconButton(
                     onClick = onFavoriteClick
                 ) {
-                    Icon(imageVector = Icons.TwoTone.Star, contentDescription = "Favorite")
+                    Icon(imageVector = Icons.Outlined.BookmarkBorder, contentDescription = "Favorite")
                 }
             },
         )
@@ -235,35 +237,39 @@ private fun WalletTopBar(
 private fun WalletScreenContent(
     tokensList: List<Token>,
     transactionsList: List<Transaction>,
-    tabsList: List<WalletTabItem>,
-    selectedTabIndex: Int,
-    onTabSelected: (Int) -> Unit,
+    tabsList: List<WalletScreenTab>,
+    selectedTab: WalletScreenTab,
+    onTabSelected: (WalletScreenTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val pagerState = rememberPagerState { tabsList.size }
 
-    LaunchedEffect(selectedTabIndex) {
-            pagerState.animateScrollToPage(selectedTabIndex)
+    LaunchedEffect(selectedTab) {
+            pagerState.animateScrollToPage(tabsList.indexOf(selectedTab))
     }
 
     LaunchedEffect(pagerState.targetPage) {
-        onTabSelected(pagerState.targetPage)
+        onTabSelected(tabsList[pagerState.targetPage])
     }
 
     Column(
         modifier = modifier.padding(horizontal = 8.dp)
     ) {
         TabRow(
-            selectedTabIndex = selectedTabIndex,
+            selectedTabIndex = tabsList.indexOf(selectedTab),
         ) {
             tabsList.forEachIndexed { index, item ->
+                val tabTitle = when(item){
+                    is WalletScreenTab.Portfolio -> item.title
+                    is WalletScreenTab.TransactionsHistory -> item.title
+                }
                 Tab(
-                    selected = index == selectedTabIndex,
-                    onClick = {onTabSelected(index)},
+                    selected = index == tabsList.indexOf(selectedTab),
+                    onClick = {onTabSelected(tabsList[index])},
                     text = {
                         Text(
-                            text = item.title
+                            text = tabTitle
                         )
                     }
                 )
@@ -276,10 +282,16 @@ private fun WalletScreenContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1F)
-        ) { index ->
-            when(index){
-                0 -> PortfolioContent(tokensList = tokensList, modifier = Modifier.fillMaxWidth())
-                1 -> HistoryContent(transactionsList = transactionsList, modifier = Modifier.fillMaxSize())
+        ) { pageIndex ->
+            when(tabsList[pageIndex]){
+                is WalletScreenTab.Portfolio-> PortfolioContent(
+                    tokensList = tokensList,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                is WalletScreenTab.TransactionsHistory -> HistoryContent(
+                    transactionsList = transactionsList,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
         }
@@ -298,12 +310,15 @@ private fun PortfolioContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TokenBalancesList(
-            tokensList = tokensList,
-            listState = tokensListState,
-            modifier = modifier
-        )
-
+        if (tokensList.isEmpty()){
+            CircularProgressIndicator(Modifier.align(Alignment.Center).size(48.dp))
+        } else {
+            TokenBalancesList(
+                tokensList = tokensList,
+                listState = tokensListState,
+                modifier = modifier
+            )
+        }
         GoUpButton(
             visible = showUpButton,
             modifier = Modifier

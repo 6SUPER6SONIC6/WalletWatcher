@@ -1,12 +1,21 @@
 package com.supersonic.walletwatcher.data.repository
 
+import com.supersonic.walletwatcher.data.local.dao.FavoriteWalletDao
+import com.supersonic.walletwatcher.data.local.dao.SearchHistoryDao
+import com.supersonic.walletwatcher.data.local.entities.FavoriteWalletEntity
+import com.supersonic.walletwatcher.data.local.entities.SearchHistoryEntity
 import com.supersonic.walletwatcher.data.remote.ApiService
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
 import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.remote.models.Transaction
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class CryptoRepository @Inject constructor(private val apiService: ApiService) {
+class CryptoRepository @Inject constructor(
+    private val apiService: ApiService,
+    private val favoriteWalletDao: FavoriteWalletDao,
+    private val searchHistoryDao: SearchHistoryDao
+) {
 
     suspend fun getWalletTokenBalances(walletAddress: String): ResultWrapper<List<Token>> {
         return apiService.getWalletTokenBalances(walletAddress)
@@ -15,5 +24,15 @@ class CryptoRepository @Inject constructor(private val apiService: ApiService) {
     suspend fun getWalletTransactionHistory(walletAddress: String): ResultWrapper<List<Transaction>> {
         return apiService.getWalletTransactionHistory(walletAddress)
     }
+
+    fun getFavoriteWallets(): Flow<List<FavoriteWalletEntity>> = favoriteWalletDao.getFavoriteWallets()
+    suspend fun addFavorite(wallet: FavoriteWalletEntity) = favoriteWalletDao.addFavoriteWallet(wallet)
+    suspend fun removeFavorite(address: String) = favoriteWalletDao.removeFavoriteWallet(address)
+    suspend fun isWalletFavorite(address: String): Boolean = favoriteWalletDao.isWalletFavorite(address)
+
+    fun getSearchHistory(): Flow<List<SearchHistoryEntity>> = searchHistoryDao.getSearchHistory()
+    suspend fun addSearchHistory(entry: SearchHistoryEntity) = searchHistoryDao.insertSearchHistory(entry)
+    suspend fun deleteSearchHistory(address: String) = searchHistoryDao.deleteFromSearchHistory(address)
+    suspend fun clearSearchHistory() = searchHistoryDao.clearSearchHistory()
 
 }

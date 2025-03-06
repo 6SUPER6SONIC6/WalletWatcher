@@ -1,5 +1,7 @@
 package com.supersonic.walletwatcher.ui.screens.main
 
+import com.supersonic.walletwatcher.R
+
 class WalletAddressValidator {
 
     private val regex = Regex("^0x[a-fA-F0-9]{40}$")
@@ -15,8 +17,8 @@ class WalletAddressValidator {
     }
 }
 
-enum class WalletAddressValidationResult{
-    EMPTY,
-    INCORRECT,
-    CORRECT
+enum class WalletAddressValidationResult(val errorMessageId: Int){
+    EMPTY(R.string.wallet_address_input_error_empty),
+    INCORRECT(R.string.wallet_address_input_error_incorrect),
+    CORRECT(0)
 }

@@ -38,9 +38,9 @@ data class Price(
     val diff7d: Double? = null,
     val diff30d: Double? = null,
     val ts: Long,
-    val marketCapUsd: Double,
-    val availableSupply: Double,
-    val volume24h: Double,
+    val marketCapUsd: Double? = null,
+    val availableSupply: Double? = null,
+    val volume24h: Double? = null,
     val volDiff1: Double? = null,
     val volDiff7: Double? = null,
     val volDiff30: Double? = null

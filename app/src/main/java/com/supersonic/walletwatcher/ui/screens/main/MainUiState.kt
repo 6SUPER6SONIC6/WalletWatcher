@@ -22,15 +22,31 @@ data class MainUiState(
     ),
     val selectedTab: MainScreenTab = MainScreenTab.History(),
     val validationResult: WalletAddressValidationResult = WalletAddressValidationResult.CORRECT,
-    val fetchingUiState: FetchingUiState = FetchingUiState.Idle
+    val fetchingState: FetchingUiState = FetchingUiState.Idle,
+    val bottomSheetState: MainBottomSheetUiState = MainBottomSheetUiState.NotShown,
+    val dialogState: MainDialogUiState = MainDialogUiState.NotShown
 )
 
 sealed class FetchingUiState {
-    data object Idle: FetchingUiState()
-    data object InProgress: FetchingUiState()
+    data object Idle : FetchingUiState()
+    data object InProgress : FetchingUiState()
     data object Success : FetchingUiState()
     data object NavigateToWallet : FetchingUiState()
     data class Error(val message: String) : FetchingUiState()
+}
+
+sealed class MainBottomSheetUiState {
+    data object NotShown : MainBottomSheetUiState()
+    data class ShowFavoriteBottomSheet(val wallet: FavoriteWalletEntity) : MainBottomSheetUiState()
+    data class ShowHistoryBottomSheet(val wallet: SearchHistoryEntity) : MainBottomSheetUiState()
+}
+
+sealed class MainDialogUiState {
+    data object NotShown : MainDialogUiState()
+    data object ShowClearHistoryDialog : MainDialogUiState()
+    data object ShowClearSavedDialog : MainDialogUiState()
+    data class ShowRemoveSavedDialog(val favoriteWalletEntity: FavoriteWalletEntity) :
+        MainDialogUiState()
 }
 
 sealed class MainScreenTab {
@@ -38,10 +54,11 @@ sealed class MainScreenTab {
         val icon: ImageVector = Icons.Outlined.Bookmarks,
         val selectedIcon: ImageVector = Icons.Filled.Bookmarks,
         val titleId: Int = R.string.saved_wallets_title
-    ): MainScreenTab()
+    ) : MainScreenTab()
+
     data class History(
         val icon: ImageVector = Icons.Outlined.History,
         val selectedIcon: ImageVector = Icons.Filled.History,
         val titleId: Int = R.string.recent_searches_title
-    ): MainScreenTab()
+    ) : MainScreenTab()
 }

@@ -25,10 +25,13 @@ class CryptoRepository @Inject constructor(
         return apiService.getWalletTransactionHistory(walletAddress)
     }
 
-    fun getFavoriteWallets(): Flow<List<FavoriteWalletEntity>> = favoriteWalletDao.getFavoriteWallets()
+    fun getAllFavoriteWallets(): Flow<List<FavoriteWalletEntity>> = favoriteWalletDao.getFavoriteWallets()
+    suspend fun getFavoriteWallet(address: String): FavoriteWalletEntity? = favoriteWalletDao.getFavoriteWallet(address)
     suspend fun addFavorite(wallet: FavoriteWalletEntity) = favoriteWalletDao.addFavoriteWallet(wallet)
     suspend fun removeFavorite(address: String) = favoriteWalletDao.removeFavoriteWallet(address)
     suspend fun isWalletFavorite(address: String): Boolean = favoriteWalletDao.isWalletFavorite(address)
+    suspend fun updateFavorite(wallet: FavoriteWalletEntity) = favoriteWalletDao.updateFavoriteWallet(wallet)
+    suspend fun clearFavorites() = favoriteWalletDao.clearFavorites()
 
     fun getSearchHistory(): Flow<List<SearchHistoryEntity>> = searchHistoryDao.getSearchHistory()
     suspend fun addSearchHistory(entry: SearchHistoryEntity) = searchHistoryDao.insertSearchHistory(entry)

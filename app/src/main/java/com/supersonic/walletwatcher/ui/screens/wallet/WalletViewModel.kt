@@ -2,8 +2,10 @@ package com.supersonic.walletwatcher.ui.screens.wallet
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.supersonic.walletwatcher.data.local.entities.FavoriteWalletEntity
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
 import com.supersonic.walletwatcher.data.remote.models.Token
+import com.supersonic.walletwatcher.data.remote.models.Transaction
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -22,19 +24,28 @@ class WalletViewModel @Inject constructor(
     private val _walletUiState = MutableStateFlow(WalletUiState())
     val walletUiState = _walletUiState.asStateFlow()
 
-    private fun updateRefreshState(newState: RefreshUiSate){
-        _walletUiState.update { it.copy(refreshUiSate = newState) }
+    private fun updateRefreshState(refreshUiSate: RefreshUiSate) {
+        _walletUiState.update { it.copy(refreshUiSate = refreshUiSate) }
     }
 
-    fun loadWalletData(walletAddress: String, tokensList: List<Token>){
-        _walletUiState.update { it.copy(walletAddress = walletAddress) }
-        _walletUiState.update { it.copy(tokensList = tokensList) }
+    private fun updateFavoriteState(favoriteUiState: FavoriteUiState) {
+        _walletUiState.update { it.copy(favoriteUiState = favoriteUiState) }
+    }
+
+    private fun updateTransactionBottomSheetState(transactionBottomSheetUiState: TransactionBottomSheetUiState){
+        _walletUiState.update { it.copy(transactionBottomSheetState = transactionBottomSheetUiState) }
+    }
+
+    fun loadWalletData(walletAddress: String, tokensList: List<Token>) {
+        _walletUiState.update { it.copy(walletAddress = walletAddress, tokensList = tokensList) }
+        loadWalletName()
+        isWalletFavorite(walletAddress)
         loadTransactionsHistory(walletAddress)
     }
 
-    private fun loadTransactionsHistory(walletAddress: String){
+    private fun loadTransactionsHistory(walletAddress: String) {
         viewModelScope.launch {
-            when(val transactions = repository.getWalletTransactionHistory(walletAddress)){
+            when (val transactions = repository.getWalletTransactionHistory(walletAddress)) {
                 is ResultWrapper.Success -> _walletUiState.update { it.copy(transactionHistoryList = transactions.data) }
                 is ResultWrapper.Error -> {
                     onRefreshError(transactions.message)
@@ -44,7 +55,64 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    fun refreshWallet(){
+    private fun loadWalletName() {
+        viewModelScope.launch {
+            val favoriteWallet = repository.getFavoriteWallet(_walletUiState.value.walletAddress)
+            if (favoriteWallet != null) {
+                _walletUiState.update { it.copy(walletName = favoriteWallet.name) }
+            } else {
+                _walletUiState.update { it.copy(walletName = null) }
+            }
+        }
+    }
+
+    fun onFavoriteClick() {
+        if (_walletUiState.value.isWalletFavorite) {
+            updateFavoriteState(FavoriteUiState.ShowRemoveSavedDialog)
+        } else updateFavoriteState(FavoriteUiState.ShowSaveWalletBottomSheet)
+    }
+
+    fun dismissFavoriteDialog() {
+        updateFavoriteState(FavoriteUiState.Idle)
+    }
+
+    fun showTransactionInfoBottomSheet(transaction: Transaction){
+        updateTransactionBottomSheetState(TransactionBottomSheetUiState.ShowTransactionInfoBottomSheet(transaction))
+    }
+
+    fun dismissTransactionInfoBottomSheet(){
+        updateTransactionBottomSheetState(TransactionBottomSheetUiState.NotShown)
+    }
+
+    private fun isWalletFavorite(address: String) {
+        viewModelScope.launch {
+            _walletUiState.update { it.copy(isWalletFavorite = repository.isWalletFavorite(address)) }
+        }
+    }
+
+    fun saveWallet(walletName: String?) {
+        viewModelScope.launch {
+            repository.addFavorite(
+                FavoriteWalletEntity(
+                    address = _walletUiState.value.walletAddress, name = walletName
+                )
+            )
+            loadWalletName()
+        }
+        updateFavoriteState(FavoriteUiState.Idle)
+        _walletUiState.update { it.copy(isWalletFavorite = true) }
+    }
+
+    fun removeWallet() {
+        viewModelScope.launch {
+            repository.removeFavorite(_walletUiState.value.walletAddress)
+            loadWalletName()
+        }
+        updateFavoriteState(FavoriteUiState.Idle)
+        _walletUiState.update { it.copy(isWalletFavorite = false) }
+    }
+
+    fun refreshWallet() {
         viewModelScope.launch {
             updateRefreshState(RefreshUiSate.InProgress)
 
@@ -53,14 +121,14 @@ class WalletViewModel @Inject constructor(
             val balancesResult = async { repository.getWalletTokenBalances(walletAddress) }
             val transactionsResult = async { repository.getWalletTransactionHistory(walletAddress) }
 
-            when(val balances = balancesResult.await()) {
+            when (val balances = balancesResult.await()) {
                 is ResultWrapper.Success -> _walletUiState.update { it.copy(tokensList = balances.data) }
                 is ResultWrapper.Error -> {
                     onRefreshError(balances.message)
                     return@launch
                 }
             }
-            when(val transactions = transactionsResult.await()){
+            when (val transactions = transactionsResult.await()) {
                 is ResultWrapper.Success -> _walletUiState.update { it.copy(transactionHistoryList = transactions.data) }
                 is ResultWrapper.Error -> {
                     onRefreshError(transactions.message)
@@ -71,7 +139,7 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    private fun onRefreshSuccess(){
+    private fun onRefreshSuccess() {
         updateRefreshState(RefreshUiSate.Success)
         viewModelScope.launch {
             delay(1000)
@@ -79,7 +147,7 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    private fun onRefreshError(message: String){
+    private fun onRefreshError(message: String) {
         updateRefreshState(RefreshUiSate.Error(message))
         viewModelScope.launch {
             delay(1000)
@@ -87,7 +155,7 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    fun onTabSelected(tab: WalletScreenTab){
+    fun onTabSelected(tab: WalletScreenTab) {
         _walletUiState.update { it.copy(selectedTab = tab) }
     }
 }

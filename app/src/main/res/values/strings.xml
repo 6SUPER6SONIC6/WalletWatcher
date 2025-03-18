@@ -1,21 +1,67 @@
 <resources>
+    <!-- App Name -->
     <string name="app_name">Wallet Watcher</string>
 
-    // Recent Searches
-    <string name="recent_searches_empty_text_title">No recent searches found</string>
-    <string name="recent_searches_empty_text_body">Your latest searches will be saved here for quick access</string>
+    <!-- Recent Searches -->
     <string name="recent_searches_title">Recent searches</string>
+    <string name="recent_searches_empty_title">No recent searches found</string>
+    <string name="recent_searches_empty_text">Your latest searches will be saved here for quick access</string>
 
+    <!-- Saved Wallets -->
     <string name="saved_wallets_title">Saved wallets</string>
+    <string name="saved_wallets_empty_title">No saved wallets found</string>
+    <string name="saved_wallets_empty_text">Your saved wallets will be displayed here</string>
 
-    // Wallet Address Input
+    <!-- Wallet Address Input -->
     <string name="wallet_address_input_title">Enter wallet address</string>
+    <string name="wallet_address_input_placeholder">0x112532B200980Ddee8226023bEbBE2E6884C31e2</string>
     <string name="wallet_address_input_error_empty">This field must be filled in</string>
     <string name="wallet_address_input_error_incorrect">Wallet address is invalid</string>
-    <string name="wallet_address_input_placeholder">0x112532B200980Ddee8226023bEbBE2E6884C31e2</string>
 
-    <string name="clear_history_dialog_title">Clear All Searches?</string>
+    <!-- Dialogs -->
+    <string name="clear_history_dialog_title">Clear recent searches?</string>
     <string name="clear_history_dialog_text">This will delete all recent searches permanently.</string>
     <string name="clear_history_dialog_confirm">Clear</string>
     <string name="clear_history_dialog_dismiss">Cancel</string>
+
+    <string name="clear_saved_wallets_dialog_title">Clear saved wallets?</string>
+    <string name="clear_saved_wallets_dialog_text">This will delete all saved wallets permanently.</string>
+
+    <string name="remove_saved_wallet_dialog_title">Remove wallet from saved?</string>
+    <string name="remove_saved_wallet_dialog_text">You will no longer have quick access to \"%1$s\".</string>
+    <string name="remove_saved_wallet_dialog_confirm">Remove</string>
+
+    <!-- Save Wallet Bottom Sheet -->
+    <string name="save_wallet_bottom_sheet_title">Save wallet</string>
+    <string name="save_wallet_bottom_sheet_textfield_title">Name (optional)</string>
+    <string name="save_wallet_bottom_sheet_textfield_placeholder">Durov\'s wallet</string>
+
+    <!-- Saved Wallets Bottom Sheet -->
+    <string name="saved_wallets_bottom_sheet_option_go_to_wallet">Go to wallet</string>
+    <string name="saved_wallets_bottom_sheet_option_copy_wallet_address">Copy wallet address</string>
+    <string name="saved_wallets_bottom_sheet_option_change_wallet_name">Change wallet name</string>
+    <string name="saved_wallets_bottom_sheet_textfield_title">Wallet name</string>
+    <string name="saved_wallets_bottom_sheet_option_remove_from_saved">Remove from saved</string>
+
+    <!-- History Bottom Sheet -->
+    <string name="history_bottom_sheet_option_save_wallet">Save wallet</string>
+    <string name="history_bottom_sheet_option_remove_from_recent">Remove from recent</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_removed_from_resent_searches">Removed from recent searches.</string>
+    <string name="toast_wallet_saved">Wallet saved.</string>
+
+    <!-- Transactions History -->
+    <string name="transactions_history_empty_title">No transactions found</string>
+    <string name="transactions_history_from">From %1$s</string>
+    <string name="transactions_history_to">To %1$s</string>
+
+    <!-- Transaction Info Bottom Sheet -->
+    <string name="transaction_info_bottom_sheet_from">From:</string>
+    <string name="transaction_info_bottom_sheet_to">To:</string>
+    <string name="transaction_info_bottom_sheet_hash">Hash:</string>
+    <string name="transaction_info_bottom_sheet_amount">Amount:</string>
+    <string name="transaction_info_bottom_sheet_usd_value">USD value:</string>
+
+
 </resources>

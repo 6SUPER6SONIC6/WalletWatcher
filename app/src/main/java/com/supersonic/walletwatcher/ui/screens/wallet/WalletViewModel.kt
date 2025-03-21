@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
-    private val repository: CryptoRepository
+    private val repository: CryptoRepository,
 ) : ViewModel() {
 
     private val _walletUiState = MutableStateFlow(WalletUiState())
@@ -32,27 +32,22 @@ class WalletViewModel @Inject constructor(
         _walletUiState.update { it.copy(favoriteUiState = favoriteUiState) }
     }
 
-    private fun updateTransactionBottomSheetState(transactionBottomSheetUiState: TransactionBottomSheetUiState){
+    private fun updateTransactionBottomSheetState(transactionBottomSheetUiState: TransactionBottomSheetUiState) {
         _walletUiState.update { it.copy(transactionBottomSheetState = transactionBottomSheetUiState) }
     }
 
-    fun loadWalletData(walletAddress: String, tokensList: List<Token>) {
-        _walletUiState.update { it.copy(walletAddress = walletAddress, tokensList = tokensList) }
+    fun loadWalletData(
+        walletAddress: String, tokensList: List<Token>, transactionsList: List<Transaction>
+    ) {
+        _walletUiState.update {
+            it.copy(
+                walletAddress = walletAddress,
+                tokensList = tokensList,
+                transactionHistoryList = transactionsList
+            )
+        }
         loadWalletName()
         isWalletFavorite(walletAddress)
-        loadTransactionsHistory(walletAddress)
-    }
-
-    private fun loadTransactionsHistory(walletAddress: String) {
-        viewModelScope.launch {
-            when (val transactions = repository.getWalletTransactionHistory(walletAddress)) {
-                is ResultWrapper.Success -> _walletUiState.update { it.copy(transactionHistoryList = transactions.data) }
-                is ResultWrapper.Error -> {
-                    onRefreshError(transactions.message)
-                    return@launch
-                }
-            }
-        }
     }
 
     private fun loadWalletName() {
@@ -76,11 +71,15 @@ class WalletViewModel @Inject constructor(
         updateFavoriteState(FavoriteUiState.Idle)
     }
 
-    fun showTransactionInfoBottomSheet(transaction: Transaction){
-        updateTransactionBottomSheetState(TransactionBottomSheetUiState.ShowTransactionInfoBottomSheet(transaction))
+    fun showTransactionInfoBottomSheet(transaction: Transaction) {
+        updateTransactionBottomSheetState(
+            TransactionBottomSheetUiState.ShowTransactionInfoBottomSheet(
+                transaction
+            )
+        )
     }
 
-    fun dismissTransactionInfoBottomSheet(){
+    fun dismissTransactionInfoBottomSheet() {
         updateTransactionBottomSheetState(TransactionBottomSheetUiState.NotShown)
     }
 

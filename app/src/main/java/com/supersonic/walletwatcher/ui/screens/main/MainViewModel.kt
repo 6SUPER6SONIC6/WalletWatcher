@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.supersonic.walletwatcher.data.local.entities.FavoriteWalletEntity
 import com.supersonic.walletwatcher.data.local.entities.SearchHistoryEntity
 import com.supersonic.walletwatcher.data.remote.common.ResultWrapper
-import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.data.repository.CryptoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -98,15 +98,27 @@ class MainViewModel @Inject constructor(
     private fun fetchWalletData(address: String) {
         viewModelScope.launch {
             updateFetchingSate(FetchingUiState.InProgress)
-            when (val result = repository.getWalletTokenBalances(address)) {
-                is ResultWrapper.Success -> {
-                    onSuccess(result.data)
-                }
 
+            val balancesResult = async { repository.getWalletTokenBalances(address) }
+            val transactionsResult = async { repository.getWalletTransactionHistory(address) }
+
+            when (val balances = balancesResult.await()) {
+                is ResultWrapper.Success -> _mainUiState.update { it.copy(tokensList = balances.data) }
                 is ResultWrapper.Error -> {
-                    onError(result.message)
+                    onError(balances.message)
+                    return@launch
                 }
             }
+
+            when (val transactions = transactionsResult.await()) {
+                is ResultWrapper.Success -> _mainUiState.update { it.copy(transactionHistoryList = transactions.data) }
+                is ResultWrapper.Error -> {
+                    onError(transactions.message)
+                    return@launch
+                }
+            }
+
+            onSuccess()
         }
     }
 
@@ -155,8 +167,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun onSuccess(result: List<Token>) {
-        _mainUiState.update { it.copy(tokensList = result) }
+    private fun onSuccess() {
         updateFetchingSate(FetchingUiState.Success)
         viewModelScope.launch {
             delay(500)

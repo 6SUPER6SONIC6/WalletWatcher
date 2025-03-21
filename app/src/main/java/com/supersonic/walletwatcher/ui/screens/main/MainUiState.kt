@@ -10,10 +10,12 @@ import com.supersonic.walletwatcher.R
 import com.supersonic.walletwatcher.data.local.entities.FavoriteWalletEntity
 import com.supersonic.walletwatcher.data.local.entities.SearchHistoryEntity
 import com.supersonic.walletwatcher.data.remote.models.Token
+import com.supersonic.walletwatcher.data.remote.models.Transaction
 
 data class MainUiState(
     val walletAddress: String = "",
     val tokensList: List<Token> = listOf(),
+    val transactionHistoryList: List<Transaction> = listOf(),
     val favoriteWallets: List<FavoriteWalletEntity> = listOf(),
     val searchHistory: List<SearchHistoryEntity> = listOf(),
     val tabs: List<MainScreenTab> = listOf(

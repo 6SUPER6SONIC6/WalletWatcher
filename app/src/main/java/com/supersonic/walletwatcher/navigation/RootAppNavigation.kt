@@ -5,6 +5,10 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -12,12 +16,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.ui.screens.main.MainScreen
 import com.supersonic.walletwatcher.ui.screens.main.MainViewModel
 import com.supersonic.walletwatcher.ui.screens.wallet.WalletScreen
 import com.supersonic.walletwatcher.ui.screens.wallet.WalletViewModel
-import kotlinx.serialization.json.Json
 
 @Composable
 fun RootAppNavigation(
@@ -52,45 +54,37 @@ fun RootAppNavigation(
                 targetOffsetX = { fullWidth -> fullWidth },
                 animationSpec = tween(durationMillis = 500)
             )
-        }
-    ){
+        }) {
         composable<MainScreen> {
-
             MainScreen(
                 viewModel = hiltViewModel<MainViewModel>(),
-                onNavigationToWalletScreen = { tokenBalances, walletAddress ->
+                onNavigationToWalletScreen = { walletAddress ->
                     navController.navigate(
-                        WalletScreen(
-                            walletBalances = tokenBalances.map { item ->
-                                Json.encodeToString(Token.serializer(), item) },
-                            walletAddress = walletAddress
-                        )
+                        WalletScreen(walletAddress)
                     )
                 },
                 modifier = Modifier.fillMaxSize()
             )
-
         }
 
         composable<WalletScreen> {
             val args = it.toRoute<WalletScreen>()
-            val tokenBalances = if (args.walletBalances.isEmpty()){
-                emptyList()
-            } else {
-                args.walletBalances.map { tokenBalance ->
-                    Json.decodeFromString(Token.serializer(), tokenBalance)
-                }
+
+            val mainViewModel =
+                hiltViewModel<MainViewModel>(navController.getBackStackEntry(MainScreen))
+            val walletViewModel = hiltViewModel<WalletViewModel>()
+
+            val tokensList by remember { derivedStateOf { mainViewModel.mainUiState.value.tokensList } }
+            val transactionsList by remember { derivedStateOf { mainViewModel.mainUiState.value.transactionHistoryList } }
+
+            LaunchedEffect(args.walletAddress, tokensList, transactionsList) {
+                walletViewModel.loadWalletData(args.walletAddress, tokensList, transactionsList)
             }
 
-            val viewModel = hiltViewModel<WalletViewModel>()
-            viewModel.loadWalletData(args.walletAddress, tokenBalances)
             WalletScreen(
-                viewModel = viewModel,
-                onNavigateBack = {
+                viewModel = walletViewModel, onNavigateBack = {
                     navController.navigateUp()
-                }
-            )
+                })
         }
-
     }
 }

@@ -75,7 +75,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supersonic.walletwatcher.R
 import com.supersonic.walletwatcher.data.local.entities.FavoriteWalletEntity
 import com.supersonic.walletwatcher.data.local.entities.SearchHistoryEntity
-import com.supersonic.walletwatcher.data.remote.models.Token
 import com.supersonic.walletwatcher.ui.components.Dialog
 import com.supersonic.walletwatcher.ui.components.IconTextButton
 import com.supersonic.walletwatcher.ui.components.SavedWalletsList
@@ -87,7 +86,7 @@ import com.supersonic.walletwatcher.utils.formatMillisToRelativeTime
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
-    onNavigationToWalletScreen: (List<Token>, String) -> Unit,
+    onNavigationToWalletScreen: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mainUiState by viewModel.mainUiState.collectAsStateWithLifecycle()
@@ -108,7 +107,7 @@ fun MainScreen(
             FetchingUiState.Success -> view.performHapticFeedback(HapticFeedbackConstantsCompat.CONFIRM)
             FetchingUiState.NavigateToWallet -> {
                 if (mainUiState.tokensList.isNotEmpty()) {
-                    onNavigationToWalletScreen(mainUiState.tokensList, mainUiState.walletAddress)
+                    onNavigationToWalletScreen(mainUiState.walletAddress)
                 }
             }
 

@@ -7,6 +7,5 @@ object MainScreen
 
 @Serializable
 data class WalletScreen(
-    val walletBalances: List<String> = emptyList(),
     val walletAddress: String
 )

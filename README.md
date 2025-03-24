@@ -3,7 +3,7 @@
 
 Wallet Watcher is an Android app for checking Ethereum* wallet balances and transaction history. Instantly view the number of tokens in any wallet, their value in USD, and the latest transactions. Save wallets for quick access and name them for better organization.
 
-*Support for additional blockchains is planned for [future updates](#development-roadmap).**
+*Support for additional blockchains is planned for [future updates](#-development-roadmap).**
 
 <div align="center">
   
@@ -18,7 +18,7 @@ Wallet Watcher is an Android app for checking Ethereum* wallet balances and tran
 
 <div align="center">
   
-  [<img src="https://img.shields.io/badge/Download-Wallet%20Watcher-black?style=for-the-badge&labelColor=white" alt="Download Wallet Watcher" height="60">](#download)
+  [<img src="https://img.shields.io/badge/Download-Wallet%20Watcher-black?style=for-the-badge&labelColor=white" alt="Download Wallet Watcher" height="60">](#-download)
   
 </div>
 
